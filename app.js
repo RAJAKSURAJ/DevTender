@@ -16,7 +16,7 @@ app.post("/signup", async (req, res) => {
   const { firstName, lastName, emailId, password } = req.body;
   try {
     validateSignup(req);
-    const hashPassword = await bcrypt.hash(password, 10);
+    const hashPassword = await password.generateHashPassword();
     const user = new User({
       firstName,
       lastName,
@@ -39,12 +39,11 @@ app.post("/login", async (req, res) => {
     if (!user) {
       throw new Error("Invalid credential");
     }
-    const isUserValid = await bcrypt.compare(password, user.password);
+
+    const isUserValid = await user.validatePassword(password);
 
     if (isUserValid) {
-      const token = await jwt.sign({ _id: user._id }, "DEV@Tinder$07", {
-        expiresIn: "7d",
-      });
+      const token = await user.getJWT();
 
       res.cookie("token", token, {
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
