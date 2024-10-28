@@ -30,13 +30,6 @@ const userSchema = mongoose.Schema(
     password: {
       type: String,
       required: true,
-      // minLength: 6,
-      // maxLength: 12,
-      // validate(value) {
-      //   if (!validator.isStrongPassword(value)) {
-      //     throw new Error("Strong password required ");
-      //   }
-      // },
     },
     age: {
       type: Number,
@@ -80,9 +73,9 @@ userSchema.methods.getJWT = async function () {
   return token;
 };
 
-userSchema.methods.generateHashPassword = async function () {
-  const password = this;
-  const hashPassword = bcrypt.hash(password, 10);
+userSchema.methods.generateHashPassword = async function (password) {
+  // const password = this;
+  const hashPassword = await bcrypt.hash(password, 10);
   return hashPassword;
 };
 

@@ -27,5 +27,12 @@ const validateLogin = (req) => {
     throw new Error("Invalid credential");
   }
 };
+const validateProfileEdit = (req) => {
+  const allowedEdit = ["firstName", "lastName", "emailId", "skills"];
 
-module.exports = { validateSignup, validateLogin };
+  const isAllowed = Object.keys(req.body).every((field) =>
+    allowedEdit.includes(field)
+  );
+  return isAllowed;
+};
+module.exports = { validateSignup, validateLogin, validateProfileEdit };
