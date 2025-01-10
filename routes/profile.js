@@ -17,9 +17,12 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
     validateProfileEdit(req);
     if (validateProfileEdit) {
       const loggedUser = req.user;
-      Object.keys(req.body).forEach((key) => (loggedUser[key] = req.body[key]));
-
-      res.send(`${loggedUser.firstName}  Profile edited successfully`);
+      Object.keys(req.body).forEach((key) => {
+        loggedUser[key] = req.body[key];
+      });
+      console.log(loggedUser);
+      await loggedUser.save();
+      res.send(loggedUser);
     } else {
       throw new Error("Invalid edit field");
     }
@@ -31,6 +34,11 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
 profileRouter.patch("/resetpassword", userAuth, async (req, res) => {
   try {
     const loggedUser = req.user;
+
+    if (!req.body.password) {
+      return res.status(400).send("Error: Password is required.");
+    }
+
     const hashPassword = await new User().generateHashPassword(
       req.body.password
     );
@@ -38,13 +46,15 @@ profileRouter.patch("/resetpassword", userAuth, async (req, res) => {
     const update = await User.findByIdAndUpdate(loggedUser, {
       password: hashPassword,
     });
+
     if (!update) {
-      throw new Error("Failed to update");
+      throw new Error("Failed to update password.");
     }
 
-    res.send(`password updated successfully`);
+    res.status(200).json({ message: "Password updated successfully." });
   } catch (err) {
-    res.status(400).send("Error : " + err.message);
+    console.error(err);
+    res.status(400).json({ error: err.message });
   }
 });
 

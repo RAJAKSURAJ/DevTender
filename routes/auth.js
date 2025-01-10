@@ -5,7 +5,7 @@ const { validateSignup } = require("../utils/validation");
 const { validateLogin } = require("../utils/validation");
 
 authRouter.post("/signup", async (req, res) => {
-  const { firstName, lastName, emailId, password } = req.body;
+  const { firstName, lastName, emailId, password, photoUrl } = req.body;
   try {
     validateSignup(req);
     const hashPassword = await new User().generateHashPassword(password);
@@ -15,9 +15,17 @@ authRouter.post("/signup", async (req, res) => {
       lastName,
       emailId,
       password: hashPassword,
+      photoUrl,
     });
-    await user.save();
-    res.status(200).send("data saved successfully");
+    const savedUser = await user.save();
+    const token = await savedUser.getJWT();
+
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+    res
+      .status(200)
+      .send({ message: "data saved successfully", data: savedUser });
   } catch (err) {
     res.status(400).send("Error : " + err.message);
   }
@@ -41,7 +49,7 @@ authRouter.post("/login", async (req, res) => {
       res.cookie("token", token, {
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
-      res.send("Login successfully");
+      res.send(user);
     } else {
       throw new Error("Invalid credential");
     }
